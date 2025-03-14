@@ -2,11 +2,11 @@
 
 This repository contains the implementation of a two-stage framework for aligning models with AI preferences while retaining previously learned knowledge. The framework includes **contrastive learning** and **rank preference optimization (RankPO)**, along with supportive utilities for fine-tuning and evaluation.
 
-<center>
-    <img src="images/overview.png" width="500">
-</center>
 
----
+<p align="center">
+  <img src="imgs/overview.png" />
+</p>
+
 
 ## 📂 Repository Structure
 
@@ -22,6 +22,7 @@ This repository contains the implementation of a two-stage framework for alignin
 - **Rank Preference Optimization (RankPO)**:
   - `rankpo_trainer.py`: Custom trainer for RankPO, implementing specialized training objectives.
   - `run_rankpo.py`: Script to train models using RankPO for preference alignment.
+
 
 #### 1.2 Scripts:
   - `scripts/`: Bash commands to train/evaluate the models.
@@ -43,10 +44,9 @@ This repository contains the implementation of a two-stage framework for alignin
 
 
 
----
 
 
-## **Usage**
+## 🛠️ **Usage**
 
 ### **1. Contrastive Learning**
 
@@ -151,20 +151,7 @@ src/run_rankpo.py \
     --run_name <wand-run-name> \
 ```
 
----
 
-## **Key Features**
-
-- **Contrastive Learning**:
-  - Rule-based data generation for scenarios with limited data.
-  - Custom trainer (`contrastive_trainer.py`) for handling embeddings and contrastive objectives.
-
-- **Rank Preference Optimization (RankPO)**:
-  - Incorporates reference-free or reference-based comparisons.
-  - Supports flexible loss functions (e.g., hinge, sigmoid).
-  - Fine-tunes models for preference alignment.
-
----
 
 ## 📄 Example Data Format
 
@@ -187,13 +174,13 @@ src/run_rankpo.py \
 }
 ```
 
----
+
 
 ## 📜 License
 
 This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for more details.
 
----
+
 
 ## 🤝 Contributing
 
