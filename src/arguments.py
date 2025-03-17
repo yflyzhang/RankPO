@@ -26,6 +26,21 @@ class ModelArguments:
         default=None, metadata={"help": "Where do you want to store the pretrained models downloaded from s3"}
     )
 
+    use_fast_tokenizer: bool = field(
+        default=True,
+        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+    )
+
+    dtype: Optional[str] = field(
+        default="float32",
+        metadata={
+            "help": (
+                "Floating-point format in which the model weights should be initialized and trained. Choose one of"
+                " `[float32, float16, bfloat16]`."
+            )
+        },
+    )
+
     attn_implementation: Optional[str] = field(
         default=None,
         metadata={
@@ -33,6 +48,37 @@ class ModelArguments:
                 "Which attention implementation to use;"
                 "you can use --attn_implementation=flash_attention_2,"
                 "in which case you must install this manually by running `pip install flash-attn --no-build-isolation`"
+            )
+        },
+    )
+
+    dtype: Optional[str] = field(
+        default="float32",
+        metadata={
+            "help": (
+                "Floating-point format in which the model weights should be initialized and trained. Choose one of"
+                " `[float32, float16, bfloat16]`."
+            )
+        },
+    )
+
+    token: str = field(
+        default=None,
+        metadata={
+            "help": (
+                "The token to use as HTTP bearer authorization for remote files. If not specified, will use the token "
+                "generated when running `huggingface-cli login` (stored in `~/.huggingface`)."
+            )
+        },
+    )
+
+    trust_remote_code: bool = field(
+        default=False,
+        metadata={
+            "help": (
+                "Whether to trust the execution of code from datasets/models defined on the Hub."
+                " This option should only be set to `True` for repositories you trust and in which you have read the"
+                " code, as it will execute code present on the Hub on your local machine."
             )
         },
     )
@@ -127,10 +173,6 @@ class TrainArguments(TrainingArguments):
     # debug: bool = field(
     #     default=False, metadata={"help": "Whether to enter debug mode. If True, breakpoints will work"}
     # )
-    
-    use_fast: bool = field(
-        default=True, metadata={"help": "Whether to use fast tokenizer"}
-    )
 
     use_inbatch_neg: bool = field(
         default=True, metadata={"help": "Use passages in the same batch as negatives"}
@@ -651,10 +693,6 @@ class RankPOArguments(TrainingArguments):
         default=False, 
         metadata={"help": "If `True`, no reference mode used (like SimPO)."}
     )
-    
-    use_fast: bool = field(
-        default=True, metadata={"help": "Whether to use fast tokenizer"}
-    )
 
     # train_data: str = field(
     #     default=None, metadata={"help": "Path to train data"}
@@ -740,11 +778,6 @@ class RankPOArguments(TrainingArguments):
     disable_dropout: bool = field(
         default=True, metadata={"help": "Whether or not to disable dropouts in `model`."}
     )
-
-    dataset_num_proc: Optional[int] = field(
-        default=8, metadata={"help": "The number of workers to use to tokenize the data. Defaults to None."}
-    )
-    
     
     wandb_project: str = field(
         default='huggingface',
