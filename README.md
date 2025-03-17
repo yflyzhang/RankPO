@@ -1,10 +1,20 @@
 # RankPO: Rank Preference Optimization
 
-This repository contains the implementation of a two-stage framework for aligning models with AI preferences while retaining previously learned knowledge. The framework includes **contrastive learning** and **rank preference optimization (RankPO)**, along with supportive utilities for fine-tuning and evaluation.
+This repository contains the code and data for the paper: [RankPO: Preference Optimization for Job-Talent Matching](https://arxiv.org/abs/2503.10723).
+
+It implements a two-stage framework for aligning language models with human/AI preferences while retaining previously learned knowledge:
+* Stage 1: Contrastive learning
+* Stage 2: Rank Preference Optimization (RankPO)
 
 
 <p align="center">
-  <img src="imgs/overview.png" />
+  <img src="imgs/overview.png" width="600" />
+</p>
+
+<br>
+
+<p align="center">
+  <img src="imgs/rankpo_performance.png" width="600" />
 </p>
 
 
@@ -46,7 +56,7 @@ This repository contains the implementation of a two-stage framework for alignin
 
 
 
-## 🛠️ **Usage**
+## 🚀 **Usage**
 
 ### **1. Contrastive Learning**
 
@@ -61,6 +71,7 @@ bash scripts/train/run_contrastive.sh
 Or specifically,
 
 ```bash
+# HF_HOME=/xxx/xxx/.cache/huggingface \
 torchrun \
     --nnodes=1 \
     --nproc-per-node 4 \
@@ -69,6 +80,7 @@ src/run_contrastive.py \
     --model_name_or_path <model-name-or-path> \
     --attn_implementation flash_attention_2 \
     --train_data <path-to-train-data> \
+    --token <your-hf-token> \ # to download restricted models
     --output_dir <output-directory> \
     --learning_rate 1e-5 \
     --lr_scheduler_type cosine \
@@ -97,7 +109,12 @@ src/run_contrastive.py \
 ```
 
 > [!NOTE]
-> May change the arguments accordingly.
+> May change the arguments accordingly.<br>
+> For example:
+> * To download `meta-llama/Llama-3.2-1B` from huggingface hub, you should specify huggingface token:<br>
+> `--token <your-hf-token>`
+> * Set `HF_HOME=/xxx/xxx/.cache/huggingface` environ if you want the model to be downloaded to directory:
+> `/xxx/xxx/.cache/huggingface/hub`
 
 
 ### **2. Rank Preference Optimization (RankPO)**
@@ -130,6 +147,7 @@ src/run_rankpo.py \
     --num_train_epochs 3 \
     --per_device_train_batch_size 8 \
     --gradient_accumulation_steps 4 \
+    --overwrite_output_dir True \
     --dataloader_drop_last True \
     --normalize_embeddings True \
     --max_query_length 1280 \
@@ -143,6 +161,7 @@ src/run_rankpo.py \
     --learning_rate 1e-5 \
     --temperature 0.1 \
     --beta 2.0 \
+    --loss_type sigmoid \
     --log_level info \
     --save_strategy epoch \
     --save_only_model \
@@ -150,6 +169,38 @@ src/run_rankpo.py \
     --wandb_project rankpo \
     --run_name <wand-run-name> \
 ```
+
+
+## ⚙️ Install Requirements
+
+**CUDA Version**: This repository requires CUDA 11.8 to ensure compatibility with the provided code and dependencies. Other versions may also work.
+
+The `requirements.txt` file contains the full list of dependencies, which was generated from the environment used during development. 
+However, you **do not** need to install all of them. 
+Instead, installing the core dependencies should be sufficient to run the project. 
+Below is a list of the core dependencies you need to install:
+
+```bash
+torch==2.4.1
+deepspeed==0.15.2
+transformers==4.45.2
+datasets==3.0.1
+accelerate==1.0.1
+trl==0.11.0
+flash-attn==2.7.3   # pip install flash-attn --no-build-isolation
+```
+
+> We recommend to install pyTorch by:<br>
+> https://pytorch.org/get-started/previous-versions/#linux-and-windows-4
+> 
+> ```bash
+> # CUDA 11.8
+> conda install pytorch==2.4.1 torchvision==0.19.1 > torchaudio==2.4.1  pytorch-cuda=11.8 -c pytorch -c nvidia
+> ```
+
+For other missing packages, please refer to the `requirements.txt` file.
+
+
 
 
 
@@ -176,13 +227,28 @@ src/run_rankpo.py \
 
 
 
-## 📜 License
-
-This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for more details.
 
 
+## 🎓 Citation
+If you find the repo helpful for your work, please consider to cite our paper:
+
+```
+@misc{zhang2025rankpo,
+      title={RankPO: Preference Optimization for Job-Talent Matching}, 
+      author={Yafei Zhang and Murray Wang and Yu Wang and Xiaohui Wang},
+      year={2025},
+      eprint={2503.10723},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2503.10723}, 
+}
+```
 
 ## 🤝 Contributing
 
 Contributions are welcome! If you have suggestions, feature requests, or bug fixes, please open an issue or submit a pull request.
+
+## 📜 License
+
+This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for more details.
 
