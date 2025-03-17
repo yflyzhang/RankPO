@@ -8,6 +8,7 @@ from transformers import (
     HfArgumentParser,
     set_seed,
 )
+from accelerate import PartialState
 import datasets
 
 
@@ -79,25 +80,30 @@ def main():
     # Set seed
     set_seed(training_args.seed)
 
-    # return
-    
     #######################
     # Load pretrained model
     #######################
     model = ModelForTraining(
         model_name_or_path=model_args.model_name_or_path,
         attn_implementation=model_args.attn_implementation,
+        cache_dir=model_args.cache_dir,
+        token=model_args.token,
+        trust_remote_code=model_args.trust_remote_code,
+        use_cache=False if training_args.gradient_checkpointing else True,
+        
         normalize_embeddings=training_args.normalize_embeddings,
+        use_inbatch_neg=training_args.use_inbatch_neg,
         negatives_cross_device=training_args.negatives_cross_device,
         temperature=training_args.temperature,
-        use_inbatch_neg=training_args.use_inbatch_neg,
     )
 
     
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
-        use_fast=training_args.use_fast     # use fast or slow tokenizer (defaults to fast)
+        use_fast=model_args.use_fast_tokenizer, # use fast tokenizer?
+        token=model_args.token,
+        trust_remote_code=model_args.trust_remote_code,
     )
     
     # add pad token for batched inputs for Llama3.2
@@ -159,17 +165,19 @@ def main():
         tokenized_row['negatives'] = tokenizer(row['negatives'], max_length=max_passage_length, truncation=True)
         return tokenized_row
     
-    train_dataset = train_dataset.map(
-        tokenize_row,
-        # remove_columns=column_names,
-        fn_kwargs={
-            "tokenizer": tokenizer, 
-            "max_query_length": data_args.max_query_length,
-            "max_passage_length": data_args.max_passage_length,
-        },
-        num_proc=data_args.dataset_num_proc,
-        desc="Tokenizing",
-    )
+    # Compute that only on the main process for faster data processing
+    with PartialState().local_main_process_first():
+        train_dataset = train_dataset.map(
+            tokenize_row,
+            # remove_columns=column_names,
+            fn_kwargs={
+                "tokenizer": tokenizer, 
+                "max_query_length": data_args.max_query_length,
+                "max_passage_length": data_args.max_passage_length,
+            },
+            num_proc=data_args.dataset_num_proc,
+            desc="Tokenizing",
+        )
     
     # >>>>> add a breakpoint for debug? <<<<<
     # torch.distributed.breakpoint(rank=0)

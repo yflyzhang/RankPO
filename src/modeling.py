@@ -124,11 +124,16 @@ class ModelForTraining(nn.Module):
     def __init__(
         self,
         model_name_or_path: str = None,
+        *,
         attn_implementation: str = None,
-        negatives_cross_device: bool = False,
+        use_cache: bool = True,
+        cache_dir: str = None,
+        token: str = None,
+        trust_remote_code: bool = False,
         normalize_embeddings: bool = True,
+        use_inbatch_neg: bool = True,
+        negatives_cross_device: bool = False,
         temperature: float = 1.0,
-        use_inbatch_neg: bool = True
     ):
         """
         Args:
@@ -139,19 +144,37 @@ class ModelForTraining(nn.Module):
                     [`~PreTrainedModel.save_pretrained`], e.g., `./my_model_directory/`.
             attn_implementation (`str`, defaults to `None`):
                 Attention implementation, e.g., `flash_attention_2`
-            negatives_cross_device (`bool`, defaults to `False`):
-                Whether or not to share negatives across devices.
+            cache_dir (`str`, defaults to `None`):
+                Where do you want to store the pretrained models downloaded from s3.
+            use_cache (`bool`, defaults to `True`):
+                Whether or not to use cache for generation.
+                If `use_cache` is True, `past_key_values` are returned and can be used to speed up decoding.
+            token (`str`, defaults to `None`):
+                The token to use as HTTP bearer authorization for remote files, e.g., download meta-llama/Llama-3.2-1B.
+            trust_remote_code (`bool`, defaults to `False`):
+                Whether to trust the execution of code from datasets/models defined on the Hub.
             normalize_embeddings (`bool`, defaults to `True`):
                 Whether or not to normalize embeddings.
-            temperature (`float`, *optional*, defaults to 1.0):
-                The value used to modulate the embeddings.
             use_inbatch_neg (`bool`, defaults to `True`):
                 Whether or not to use passages in the same batch as negatives.
+            negatives_cross_device (`bool`, defaults to `False`):
+                Whether or not to share negatives across devices.
+            temperature (`float`, *optional*, defaults to 1.0):
+                The value used to modulate the embeddings.
         """
         super().__init__()
+        model_init_kwargs = dict(
+            attn_implementation=attn_implementation,
+            cache_dir=cache_dir,
+            use_cache=use_cache,
+            # Disable caching if gradient checkpointing is enabled (not compatible)
+            token=token,
+            trust_remote_code=trust_remote_code,
+        )
+
         self.model = AutoModel.from_pretrained(
             model_name_or_path, 
-            attn_implementation=attn_implementation
+            **model_init_kwargs
         )
         self.criterion = nn.CrossEntropyLoss(reduction='mean')
         

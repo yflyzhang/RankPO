@@ -40,8 +40,10 @@ log_levels = {
 }
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    format="[%(asctime)s] [%(levelname)s] [%(name)s]  %(message)s",
+    # format="[%(asctime)s] [%(levelname)s] [%(name)s]  %(message)s",
+    format="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)s] >> %(message)s",
     # format="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d:%(funcName)s] %(message)s"
+    # formatter = logging.Formatter("[%(levelname)s|%(pathname)s:%(lineno)s] %(asctime)s >> %(message)s")
     datefmt="%Y-%m-%d %H:%M:%S",
     handlers=[logging.StreamHandler(sys.stdout)],
     level=logging.WARNING,
@@ -183,7 +185,12 @@ class ContrastiveTrainer(Trainer):
         num_train_tokens = None
         if has_length(train_dataloader):
             len_dataloader = len(train_dataloader)
+            # dataloader_drop_last=True: 
             num_update_steps_per_epoch = len_dataloader // args.gradient_accumulation_steps
+            # ------------------------------
+            # Use ceiled int?
+            # num_update_steps_per_epoch = math.ceil(len_dataloader / args.gradient_accumulation_steps)
+            # ------------------------------
             num_update_steps_per_epoch = max(num_update_steps_per_epoch, 1)
             num_examples = self.num_examples(train_dataloader)
             if args.max_steps > 0:
@@ -301,7 +308,7 @@ class ContrastiveTrainer(Trainer):
         
         # # >>>>> add a breakpoint for debug? <<<<<
         # torch.distributed.breakpoint(rank=0)
-
+        
         # prepare using `accelerator` prepare
         # prepare/wrap the model using `Deepspeed` via `accelerator`
         if use_accelerator_prepare:
@@ -472,6 +479,9 @@ class ContrastiveTrainer(Trainer):
                 steps_skipped = steps_trained_in_current_epoch
                 steps_trained_in_current_epoch = 0
                 rng_to_sync = True
+            
+            # # >>>>> add a breakpoint for debug? <<<<<
+            # torch.distributed.breakpoint(rank=0)
 
             step = -1
             for step, inputs in enumerate(epoch_iterator):
