@@ -8,7 +8,7 @@ It implements a two-stage framework for aligning language models with human/AI p
 
 
 <p align="center">
-  <img src="imgs/overview.png" width="600" />
+  <img src="imgs/overview.png" width="550" />
 </p>
 
 <br>
