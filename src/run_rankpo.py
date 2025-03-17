@@ -48,14 +48,17 @@ def main():
     parser = HfArgumentParser((ModelArguments, TrainDataArguments, RankPOArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
-    # pass max_query_length and max_passage_length to training_args
+    # Pass max_query_length and max_passage_length to training_args
     training_args.max_query_length = data_args.max_query_length
     training_args.max_passage_length = data_args.max_passage_length
-    
+    training_args.dataset_num_proc = data_args.dataset_num_proc
+
     #######
     # Setup
     #######
     logging.basicConfig(
+        # format="[%(asctime)s] [%(levelname)s]  %(message)s",
+        # format="[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)s] >> %(message)s",
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
@@ -132,7 +135,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
-        use_fast=training_args.use_fast     # use fast or slow tokenizer (defaults to fast)
+        use_fast=model_args.use_fast_tokenizer, # use fast tokenizer?
     )
     
     # Add pad token if not specified
@@ -148,7 +151,7 @@ def main():
         
         # set model.config as well
         if not model.config.pad_token_id:
-            model.model.config.pad_token_id = tokenizer.pad_token_id
+            model.config.pad_token_id = tokenizer.pad_token_id
             model.config.pad_token_id = tokenizer.pad_token_id
             logger.warning(f"set: {model.config.pad_token_id=}")
         
